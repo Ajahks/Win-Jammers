@@ -11,4 +11,8 @@ for i in range(len(cogs)):
   cogs[i].setup(client)
 
 keep_alive.keep_alive()
-client.run("ODg3OTI3NTU3MjcyNTMwOTg1.YULQ-g.YQtoMeKOdX2p-kOAy3cVRCLwacE")
+
+with open('token.txt') as f:
+    token = f.readline()
+
+client.run(token)
