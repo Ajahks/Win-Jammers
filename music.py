@@ -8,43 +8,67 @@ class music(commands.Cog):
 
   @commands.command()
   async def join(self,ctx):
-    if ctx.author.voice is None:
-      await ctx.send("Hey you arent in a voice channel")
-    voice_channel = ctx.author.voice.channel
-    if ctx.voice_client is None:
-      await voice_channel.connect()
-    else:
-      await ctx.voice_client.move_to(voice_channel)
+    try:
+      if ctx.author.voice is None:
+        await ctx.send("Hey you arent in a voice channel")
+      voice_channel = ctx.author.voice.channel
+      if ctx.voice_client is None:
+        await voice_channel.connect()
+      else:
+        await ctx.voice_client.move_to(voice_channel)
+    except Exception as exception:
+      await self.handle_exception(ctx, exception)
+      raise exception
 
   @commands.command()
   async def disconnect(self,ctx):
-    await ctx.voice_channel.disconnect()
+    try:
+      await ctx.voice_client.disconnect()
+    except Exception as exception:
+      await self.handle_exception(ctx, exception)
+      raise exception
 
   @commands.command()
   async def play(self, ctx, url):
-    print(ctx.voice_client)
-    ctx.voice_client.stop()
-    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-    YDL_OPTIONS = {'format': 'bestaudio'}
-    vc = ctx.voice_client
+    try:
+      print(ctx.voice_client)
+      ctx.voice_client.stop()
+      FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+      YDL_OPTIONS = {'format': 'bestaudio'}
+      vc = ctx.voice_client
 
-    with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl:
-      info = ydl.extract_info(url, download=False)
-      url2 = info['formats'][0]['url']
-      source = await discord.FFmpegOpusAudio.from_probe(url2,
-      **FFMPEG_OPTIONS)
-      vc.play(source)
+      with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl:
+        info = ydl.extract_info(url, download=False)
+        url2 = info['formats'][0]['url']
+        source = await discord.FFmpegOpusAudio.from_probe(url2,
+        **FFMPEG_OPTIONS)
+        vc.play(source)
+    except Exception as exception:
+      await self.handle_exception(ctx, exception)
+      raise exception
 
   @commands.command()
   async def pause(self,ctx):
-    ctx.voice_client.pause()
-    await ctx.send('paused')
+    try:
+      ctx.voice_client.pause()
+      await ctx.send('paused')
+    except Exception as exception:
+      await self.handle_exception(ctx, exception)
+      raise exception
 
   @commands.command()
   async def resume(self,ctx):
-    ctx.voice_client.resume()
-    await ctx.send('resume')
+    try:
+      ctx.voice_client.resume()
+      await ctx.send('resume')
+    except Exception as exception:
+      await self.handle_exception(ctx, exception)
+      raise exception
 
+  async def handle_exception(self,ctx, exception):
+      await ctx.send("RIP, I just died")
+      user = await self.client.fetch_user("90457491711754240")
+      await ctx.send(user.mention + ' please fix me!')
 
 def setup(client):
   client.add_cog(music(client))
