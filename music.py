@@ -7,20 +7,6 @@ class music(commands.Cog):
     self.client = client
 
   @commands.command()
-  async def join(self,ctx):
-    try:
-      if ctx.author.voice is None:
-        await ctx.send("Hey you arent in a voice channel")
-      voice_channel = ctx.author.voice.channel
-      if ctx.voice_client is None:
-        await voice_channel.connect()
-      else:
-        await ctx.voice_client.move_to(voice_channel)
-    except Exception as exception:
-      await self.handle_exception(ctx, exception)
-      raise exception
-
-  @commands.command()
   async def disconnect(self,ctx):
     try:
       await ctx.voice_client.disconnect()
@@ -31,7 +17,13 @@ class music(commands.Cog):
   @commands.command()
   async def play(self, ctx, url):
     try:
-      print(ctx.voice_client)
+      # Join the voice channel 
+      await self.join(ctx)
+
+      # If we fail to join the voice channel, then do nothing
+      if ctx.voice_client is None: 
+        print('Failed to join voice channel')
+        return
       ctx.voice_client.stop()
       FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
       YDL_OPTIONS = {'format': 'bestaudio'}
@@ -66,9 +58,22 @@ class music(commands.Cog):
       raise exception
 
   async def handle_exception(self,ctx, exception):
-      await ctx.send("RIP, I just died")
-      user = await self.client.fetch_user("90457491711754240")
-      await ctx.send(user.mention + ' please fix me!')
+    await ctx.send("RIP, something broke")
+    user = await self.client.fetch_user("90457491711754240")
+    await ctx.send(user.mention + ' please fix me!')
+
+  async def join(self,ctx):
+    # If the user is not in the voice channel, then do nothing
+    if ctx.author.voice is None:
+      await ctx.send("Hey you arent in a voice channel")
+      return
+
+    # If voice channel is found, join it
+    voice_channel = ctx.author.voice.channel
+    if ctx.voice_client is None:
+      await voice_channel.connect()
+    else:
+      await ctx.voice_client.move_to(voice_channel)
 
 def setup(client):
   client.add_cog(music(client))
